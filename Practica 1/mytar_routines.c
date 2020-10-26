@@ -55,10 +55,10 @@ loadstr(FILE * file)
 	//while(fread(NULL,sizeof(char),1,file) == 1) //leemos byte a byte
 	//	nBytes++;
 	
-	while(getc(file) != EOF)
+	while(getc(file) != '\0')
 		nBytes++;
 	
-	//nBytes contiene el numero de nbytes del ficher(necesario para reservar memoria para el
+	//nBytes contiene el numero de nbytes del tamaño del string(necesario para reservar memoria para el
 	//string que queremos devolver
 	char *str = malloc(nBytes);
 	// off_t lseek(int fd, off_t offset, int whence);
@@ -82,6 +82,17 @@ loadstr(FILE * file)
 stHeaderEntry*
 readHeader(FILE * tarFile, int *nFiles)
 {
+	stHeaderEntry* header = NULL;
+	if(fread(nFiles, sizeof(int),1,tarFile) == 0) return NULL;
+	header = malloc(sizeof(stHeaderENtry * (*nFiles)))
+	for(int i = 0; i < nFiles; i++){
+		header[i].name = loadstr(tarFile);
+		if(header[i].name == NULL){
+			free(header);
+			return NULL;
+		}
+		fread(&header[i].size, siezof(int), 1, tarFile);
+	}
 	// Complete the function
 	return NULL;
 }
