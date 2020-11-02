@@ -93,8 +93,7 @@ readHeader(FILE * tarFile, int *nFiles)
 		}
 		fread(&header[i].size, siezof(int), 1, tarFile);
 	}
-	// Complete the function
-	return NULL;
+	return header;
 }
 
 /** Creates a tarball archive 
@@ -121,8 +120,49 @@ readHeader(FILE * tarFile, int *nFiles)
 int
 createTar(int nFiles, char *fileNames[], char tarName[])
 {
-	// Complete the function
-	return EXIT_FAILURE;
+	File *tarfile = NULL;
+	File *inputFile = NULL;
+	stHeaderEntry *header = NULL;
+
+	if((tarFile = fopen(tarName, "wb")) == NULL) return EXIT_FAILURE;
+
+	header = malloc(sizeof(stHeaderEntry) * nFiles);	// First reserve room in the file to store the tarball header.
+
+	offset = (nFiles * sizeof(unsigned int)) + sizeof(int);
+
+	for(int i = 0; i < nFiles; i++){
+		header[i].name = malloc(strlen(fileNames[i]+1));
+		strcpy(header[i].name, fileNames[i]);	//build the representation of the tarball header in memory.
+		offset += strlen(fileNames[i]+1);
+	}
+
+	fseek(tarFile, offset, SEEK_CUR);	//Move the file's position indicator to the data section (skip the header)
+	
+	for(int i = 0; i < nFiles; i++){
+		if(inputFile = fopen(fileNames[i], "rb") == NULL){
+			free(header);
+			fclose(tarFile);
+			return EXIT_FAILURE;
+		}
+		if(header[i].size = copynFile(inputFile, tarFile, INT_MAX) == -1){	//dump the contents of the source files (one by one) in the tarball archive
+			free(header);
+			fclose(tarFile);
+			fclose(inputFile);
+			return EXIT_FAILURE;
+		}
+		fclose(inputFile);
+	}
+	rewind(tarFile);	// rewind the file's position indicator
+
+	fwrite(&nFiles, sizeof(int), tarFile);									//write the number of files as well as
+
+	for(int i = 0; i < nFiles; i++){										// the (file name,file size) pairs in the tar archive.
+		fwrite(header[i].name, strlen(header[i].name + 1, 1, tarFile));		
+		fwrite(header[i].size, sizeof(int), 1, tarFile);					
+	fclose(tarFile);
+	free(header);
+
+	return EXIT_SUCCESS;
 }
 
 /** Extract files stored in a tarball archive
@@ -142,6 +182,26 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 int
 extractTar(char tarName[])
 {
-	// Complete the function
-	return EXIT_FAILURE;
+	File *tarfile = NULL;
+	File *outputFile = NULL;
+	stHeaderEntry *header = NULL;
+	int nFiles;
+
+	if(tarFile = fopen(tarName, "rb") == NULL) return EXIT_FAILURE;
+
+	if(header = readHeader(tarName, &nFiles) == NULL) return EXIT_FAILLURE;
+
+	for(int i = 0; i < nFiles; i++){
+		if(outputFile = fopen(header[i].name, "wb") == NULL){
+			free(header);
+			return EXIT_FAILURE;
+		}
+		copynFile(tarFile, outputFile, header[i].size);
+		fclose(outputFile);
+	}
+
+	fclose(tarFile);
+	free(header);
+
+	return EXIT_SUCCESS;
 }
