@@ -19,8 +19,7 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
 {
 //	 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
-//	size_t fwrite(const void *ptr, size_t size, size_t nmemb,
-                     FILE *stream);
+//	size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 	if(origin == NULL || destination == NULL) return -1;
 	
@@ -28,7 +27,8 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
 	if(fread(str,sizeof(char),nBytes,origin) == nBytes){
 		fwrite(str,sizeof(char),nBytes,destination);
 		free(str);
-		return nBytes;	
+		return nBytes;
+	}
 	// Complete the function
 	free(str);
 	return -1;
@@ -64,8 +64,8 @@ loadstr(FILE * file)
 	// off_t lseek(int fd, off_t offset, int whence);
 	// lseek(file,0,SEEK_SET);	//reseteamos el puntero de lectura del fichero
 	rewind(file);			//equivalente
-	if(fread(str,sizeof(char),nBytes,file); == nBytes){
-		return &str;
+	if(fread(str,sizeof(char),nBytes,file) == nBytes)
+		return str;
 	// Complete the function
 	return NULL;
 }
@@ -84,14 +84,14 @@ readHeader(FILE * tarFile, int *nFiles)
 {
 	stHeaderEntry* header = NULL;
 	if(fread(nFiles, sizeof(int),1,tarFile) == 0) return NULL;
-	header = malloc(sizeof(stHeaderENtry * (*nFiles)))
-	for(int i = 0; i < nFiles; i++){
+	header = malloc(sizeof(stHeaderEntry) * (*nFiles));
+	for(int i = 0; i < *nFiles; i++){
 		header[i].name = loadstr(tarFile);
 		if(header[i].name == NULL){
 			free(header);
 			return NULL;
 		}
-		fread(&header[i].size, siezof(int), 1, tarFile);
+		fread(&header[i].size, sizeof(int), 1, tarFile);
 	}
 	return header;
 }
@@ -120,15 +120,15 @@ readHeader(FILE * tarFile, int *nFiles)
 int
 createTar(int nFiles, char *fileNames[], char tarName[])
 {
-	File *tarfile = NULL;
-	File *inputFile = NULL;
+	FILE *tarFile = NULL;
+	FILE *inputFile = NULL;
 	stHeaderEntry *header = NULL;
 
 	if((tarFile = fopen(tarName, "wb")) == NULL) return EXIT_FAILURE;
 
 	header = malloc(sizeof(stHeaderEntry) * nFiles);	// First reserve room in the file to store the tarball header.
 
-	offset = (nFiles * sizeof(unsigned int)) + sizeof(int);
+	int offset = (nFiles * sizeof(unsigned int)) + sizeof(int);
 
 	for(int i = 0; i < nFiles; i++){
 		header[i].name = malloc(strlen(fileNames[i]+1));
@@ -154,11 +154,12 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 	}
 	rewind(tarFile);	// rewind the file's position indicator
 
-	fwrite(&nFiles, sizeof(int), tarFile);									//write the number of files as well as
+	fwrite(&nFiles, sizeof(int),1, tarFile);									//write the number of files as well as
 
 	for(int i = 0; i < nFiles; i++){										// the (file name,file size) pairs in the tar archive.
-		fwrite(header[i].name, strlen(header[i].name + 1, 1, tarFile));		
-		fwrite(header[i].size, sizeof(int), 1, tarFile);					
+		fwrite(header[i].name, strlen(header[i].name + 1), 1, tarFile);		
+		fwrite(&header[i].size, sizeof(int), 1, tarFile);
+	}					
 	fclose(tarFile);
 	free(header);
 
@@ -182,14 +183,14 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 int
 extractTar(char tarName[])
 {
-	File *tarfile = NULL;
-	File *outputFile = NULL;
+	FILE *tarFile = NULL;
+	FILE *outputFile = NULL;
 	stHeaderEntry *header = NULL;
 	int nFiles;
 
 	if(tarFile = fopen(tarName, "rb") == NULL) return EXIT_FAILURE;
 
-	if(header = readHeader(tarName, &nFiles) == NULL) return EXIT_FAILLURE;
+	if(header = readHeader(tarFile, &nFiles) == NULL) return EXIT_FAILURE;
 
 	for(int i = 0; i < nFiles; i++){
 		if(outputFile = fopen(header[i].name, "wb") == NULL){
