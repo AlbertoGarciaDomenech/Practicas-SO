@@ -1,5 +1,5 @@
-if [-x mytar ]; then
-   if [-d ./tmp ];then
+if [ -x mytar ]; then
+   if [ -d ./tmp ];then
       rm -r ./tmp
    fi
    mkdir tmp
@@ -24,11 +24,11 @@ if [-x mytar ]; then
    ../../mytar -x -f filetar.mtar
 
    diff file1.txt ../file1.txt
-   if [$? -eq 0 ]; then
+   if [ $? -eq 0 ]; then
       diff file2.txt ../file2.txt
-      if [$? -eq 0]; then
+      if [ $? -eq 0 ]; then
          diff file3.dat ../file3.dat
-         if [$? -eq 0]; then
+         if [ $? -eq 0 ]; then
             cd ../..
             echo "Correcto"
             exit 0
